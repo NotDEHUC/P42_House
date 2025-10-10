@@ -6,26 +6,46 @@ class People
 {
     char* fullName;
 public:
-    People(char* fullName): fullName{new char [strlen(fullName) + 1]} {
-        strcpy_s(this->fullName, strlen(this->fullName), fullName);
+    People(char* fullName) {
+        if (fullName != nullptr)
+        {
+            this->fullName = new char[strlen(fullName) + 1];
+            strcpy_s(this->fullName, strlen(this->fullName), fullName);
+        }
     }
     People() : People(nullptr) {}
+
+    People(const People& obj) {
+        fullName = new char[strlen(obj.fullName) + 1];
+        strcpy_s(fullName, strlen(fullName), obj.fullName);
+    }
 
     ~People() {
         delete[] fullName;
     }
 
+    People operator= (People& obj) {
+        fullName = obj.fullName;
+    }
+
     People& operator= (People&& obj) {
         if (!(this == &obj))
         {
-            delete[] fullName;
-
+            if (obj.fullName != nullptr)
+            {
+                fullName = new char[strlen(obj.fullName) + 1];
+            }
+            
             fullName = obj.fullName;
 
             obj.fullName = nullptr;
         }
 
         return *this;
+    }
+
+    char* getPeople() {
+        return fullName;
     }
 
     void setPeople(char* people) {
@@ -45,7 +65,7 @@ public:
         residents = (People*)malloc(sizeof(People) * amount);
         for (size_t i = 0; i < amount; i++)
         {
-            residents[i] = arr[i];
+            residents[i].setPeople(arr[i].getPeople());
         }
     }
     Apartment(int amount): amount{amount} {
@@ -56,12 +76,12 @@ public:
         delete[] residents;
     }
 
-    Apartment operator= (const People&& obj) {
-        
+    void setResident(People& p, int i) {
+        residents[i] = p;
     }
 
-    void setResident(char* p, int i) {
-        residents[i].setPeople(p);
+    People getResident(int i) {
+        return residents[i];
     }
 };
 
@@ -69,9 +89,10 @@ public:
 
 class House
 {
+public:
     Apartment* apartments;
     int amount;
-public:
+
     House(int amount, Apartment* apartments) : amount{ amount } {
         this->apartments = (Apartment*)malloc(sizeof(Apartment) * amount);
         for (size_t i = 0; i < amount; i++)
@@ -83,6 +104,14 @@ public:
     House() : House(0) {}
     ~House() {
         delete[] apartments;
+    }
+
+    void setApartment(Apartment& a, int i) {
+        apartments[i] = a;
+    }
+
+    Apartment getApartment(int i) {
+        return apartments[i];
     }
 };
 
@@ -101,6 +130,15 @@ Apartment generateApartment(int amount) {
     return a;
 }
 
+House generateHouse(int amount) {
+    House h{ amount };
+
+    for (size_t i = 0; i < amount; i++)
+    {
+        h.apartments[i] = generateApartment(0);
+    }
+}
+
 
 int main()
 {
@@ -112,8 +150,13 @@ int main()
     int amount = 3;
     ppls = (People*)malloc(sizeof(People) * amount);
 
+    ppls[0].setPeople(p1.getPeople());
+    ppls[1].setPeople(p2.getPeople());
+    ppls[2].setPeople(p3.getPeople());
+
     Apartment a1{ amount, ppls };
     Apartment a2{ amount, ppls };
+    Apartment a3 = generateApartment(5);
 
     Apartment* apartments;
     int amount2 = 2;
